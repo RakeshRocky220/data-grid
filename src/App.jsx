@@ -2,14 +2,14 @@ import { DataGrid } from '@mui/x-data-grid'
 import { Box, Typography } from '@mui/material'
 
 function App() {
-  const columns = [
-    { field: 'id', headerName: 'ID', width: 70 },
-    { field: 'player', headerName: 'Player', width: 180 },
-    { field: 'team', headerName: 'Team', width: 120 },
-    { field: 'runs', headerName: 'Runs', width: 100 },
-    { field: 'matches', headerName: 'Matches', width: 100 },
-    { field: 'strikeRate', headerName: 'SR', width: 100 },
-  ]
+const columns = [
+  { field: 'id', headerName: 'ID', flex: 0.5, minWidth: 60 },
+  { field: 'player', headerName: 'Player', flex: 1, minWidth: 120 },
+  { field: 'team', headerName: 'Team', flex: 1, minWidth: 100 },
+  { field: 'runs', headerName: 'Runs', flex: 1, minWidth: 90 },
+  { field: 'matches', headerName: 'Matches', flex: 1, minWidth: 90 },
+  { field: 'strikeRate', headerName: 'SR', flex: 1, minWidth: 90 },
+]
 
   const rows = [
     { id: 1, player: 'Sahibzada Farhan', team: 'Pakistan', runs: 383, matches: 6, strikeRate: 160.25 },
@@ -20,28 +20,19 @@ function App() {
   ]
 
   return (
-    <Box
-      sx={{
-        height: '100vh',
-        display: 'flex',
-        justifyContent: 'center',   // horizontal center
-        alignItems: 'center',       // vertical center
-      }}
-    >
-      <Box sx={{ width: '70%', maxWidth: 800 }}>
-        <Typography variant="h5" gutterBottom textAlign="center">
-          🏏 T20 World Cup 2026 - Top Batters
-        </Typography>
+    <Box >
+      <Typography variant="h5" textAlign="center" sx={{ py: 2 }}>
+        🏏 T20 World Cup 2026 - Top Batters
+      </Typography>
 
-        <Box sx={{ height: 400 }}>
-          <DataGrid
-            rows={rows}
-            columns={columns}
-            pageSize={5}
-            rowsPerPageOptions={[5]}
-          />
-        </Box>
-      </Box>
+
+  <DataGrid
+    rows={rows}
+    columns={columns}
+    pageSize={5}
+    rowsPerPageOptions={[5]}
+  />
+
     </Box>
   )
 }
