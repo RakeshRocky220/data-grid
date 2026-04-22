@@ -1,86 +1,171 @@
-import * as React from "react";
+import React, { useState } from "react";
 import { DataGrid } from "@mui/x-data-grid";
-import { Box, Typography } from "@mui/material";
+import ErrorOverlay from "./ErrorOverlay";
+import Scrollbar from "./Scrollbar";
+import CustomPagination from "./CustomPagination";
+import {
+  Box,
 
-/**
- * Fake Scrollbar (simulates your custom Scrollbar / simplebar)
- */
-const FakeScrollbar = ({ children }) => {
+} from "@mui/material";
+const CustomDataGrid = ({
+  columns,
+  rowCount,
+  rows,
+  paginationModel,
+  setPaginationModel,
+  isError,
+  pageSizeOptions = [10, 25, 50, 75, 100],
+  extraStyles = {},
+  lastEvaluatedKey = "",
+  loading = false,
+  total = 0,
+  ErrorOverlayMsg = null,
+  paginationMode = "server",
+  ...restProps
+}) => {
+  // ✅ fallback state for standalone testing
+  const [localPaginationModel, setLocalPaginationModel] = useState({
+    page: 0,
+    pageSize: 10,
+  });
+
+  // ✅ Hardcoded test columns (only used if none passed)
+  const testColumns = [
+    { field: "id", headerName: "ID", width: 90 },
+    { field: "name", headerName: "Name", flex: 1 },
+    { field: "category", headerName: "Category", flex: 1 },
+    { field: "price", headerName: "Price", flex: 1 },
+    {
+      field: "description",
+      headerName: "Description",
+      flex: 2,
+    },
+  ];
+
+  // ✅ Hardcoded test rows (simulate large + variable height content)
+  const testRows = Array.from({ length: 10 }).map((_, i) => ({
+    id: i + 1,
+    name: `Product ${i + 1}`,
+    category: i % 2 === 0 ? "Electronics" : "Clothing",
+    price: `$${(Math.random() * 100).toFixed(2)}`,
+    description:
+      i % 3 === 0
+        ? "This is a very long description to simulate dynamic row height behavior in the grid. It should wrap into multiple lines and increase row height."
+        : "Short desc",
+  }));
+
+  // ✅ Use passed props OR fallback test data
+  const finalColumns = columns ?? testColumns;
+  const finalRows = rows ?? testRows;
+  const finalPaginationModel = paginationModel ?? localPaginationModel;
+  const finalSetPaginationModel =
+    setPaginationModel ?? setLocalPaginationModel;
+  const finalRowCount = rowCount ?? testRows.length;
+  const finalTotal = total || testRows.length;
+
   return (
-    <div
-      style={{
-        height: "100%",
-        overflow: "auto",
-        display: "flex",
-        flexDirection: "column",
-        border: "1px solid #ccc",
-      }}
-    >
-      <div
-        style={{
-          height: "100%",
-          display: "flex",
-          flexDirection: "column",
+    <Box p={3}>
+      <Scrollbar
+        sx={{
+          height: 1,
+          "& .simplebar-content": {
+            height: 1,
+            display: "flex",
+            flexDirection: "column",
+          },
         }}
       >
-        {children}
-      </div>
-    </div>
+        <DataGrid
+          autoHeight
+          loading={loading}
+          rowCount={finalRowCount}
+          columns={finalColumns}
+          disableColumnResize
+          rows={finalRows}
+          pageSizeOptions={pageSizeOptions}
+          disableColumnMenu
+          sortingOrder={["desc", "asc"]}
+          disableRowSelectionOnClick
+          paginationMode={paginationMode}
+          paginationModel={finalPaginationModel}
+          onPaginationModelChange={finalSetPaginationModel}
+          slots={{
+            noRowsOverlay: ErrorOverlay,
+            noResultsOverlay: ErrorOverlay,
+            pagination: CustomPagination,
+          }}
+          slotProps={{
+            noRowsOverlay: {
+              message: isError
+                ? "Server failed to load data"
+                : ErrorOverlayMsg,
+            },
+            noResultsOverlay: {
+              message:
+                finalRows?.length > 0
+                  ? null
+                  : "Your search returned no results",
+            },
+            pagination: {
+              paginationModel: finalPaginationModel,
+              setPaginationModel: finalSetPaginationModel,
+              lastEvaluatedKey,
+              loading,
+              rows: finalRows,
+              total: finalTotal,
+            },
+          }}
+          sx={{
+            "& .MuiDataGrid-columnHeaders": {
+              backgroundColor: "primary.lighter",
+            },
+            "& .MuiDataGrid-columnHeader": {
+              backgroundColor: "primary.lighter",
+            },
+            "& .MuiDataGrid-columnHeader .MuiDataGrid-sortButton": {
+              backgroundColor: "unset",
+              opacity: "1 !important",
+            },
+            ".MuiDataGrid-iconButtonContainer": {
+              visibility: "visible",
+            },
+            ".MuiDataGrid-sortIcon": {
+              opacity: "inherit !important",
+            },
+            "& .MuiDataGrid-cell": {
+              border: 1,
+              borderTop: 0,
+              borderRight: 0,
+              borderLeft: 0,
+              borderColor: "grey.300",
+              overflow: "hidden",
+              textOverflow: "ellipsis",
+              display: "block",
+              alignContent: "center",
+            },
+            "& .MuiDataGrid-cell:focus-within, & .MuiDataGrid-cell:focus": {
+              outline: "none",
+            },
+            "& .MuiDataGrid-columnHeader:focus-within, & .MuiDataGrid-columnHeader:focus":
+              {
+                outline: "none",
+              },
+            "& .MuiDataGrid-virtualScroller::-webkit-scrollbar": {
+              height: "6px",
+            },
+            "&:hover": {
+              "& .MuiDataGrid-virtualScroller::-webkit-scrollbar-thumb": {
+                backgroundColor: "lightGray",
+                borderRadius: "6px",
+              },
+            },
+            ...extraStyles,
+          }}
+          {...restProps}
+        />
+      </Scrollbar>
+    </Box>
   );
 };
 
-export default function CustomDataGrid() {
-  const columns = [
-    { field: "id", headerName: "ID", flex: 0.5, minWidth: 60 },
-    { field: "player", headerName: "Player", flex: 1, minWidth: 150 },
-    { field: "team", headerName: "Team", flex: 1, minWidth: 120 },
-    { field: "runs", headerName: "Runs", flex: 1, minWidth: 100 },
-    { field: "matches", headerName: "Matches", flex: 1, minWidth: 100 },
-    { field: "strikeRate", headerName: "SR", flex: 1, minWidth: 100 },
-  ];
-
-  // 🔥 More rows to trigger virtualization issues
-  const rows = Array.from({ length: 200 }, (_, i) => ({
-    id: i + 1,
-    player: `Player ${i + 1}`,
-    team: i % 2 === 0 ? "India" : "Australia",
-    runs: Math.floor(Math.random() * 500),
-    matches: Math.floor(Math.random() * 20),
-    strikeRate: (Math.random() * 200).toFixed(2),
-  }));
-
-  return (
-    <Box
-      sx={{
-        height: "100vh",
-        display: "flex",
-        flexDirection: "column",
-      }}
-    >
-      <Typography variant="h5" textAlign="center" sx={{ py: 2 }}>
-        🧪 Safari DataGrid Bug Reproduction
-      </Typography>
-
-      {/* 👇 Flex + 100% height chain */}
-      <Box sx={{ flex: 1 }}>
-        <FakeScrollbar>
-          <DataGrid
-            autoHeight // ❌ KEY PROBLEM
-            rows={rows}
-            columns={columns}
-            pageSizeOptions={[10, 25, 50]}
-            
-            // ❌ Dynamic height makes Safari worse
-            getRowHeight={() => "auto"}
-
-            sx={{
-              "& .MuiDataGrid-columnHeaders": {
-                backgroundColor: "#f5f5f5",
-              },
-            }}
-          />
-        </FakeScrollbar>
-      </Box>
-    </Box>
-  );
-}
+export default CustomDataGrid;
