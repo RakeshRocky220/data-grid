@@ -20,7 +20,11 @@ const CustomDataGrid = ({
   paginationMode = "server",
   ...restProps
 }) => {
-
+console.log("CustomDataGrid Props", {
+  rowCount,
+  total,
+  paginationModel,
+});
   return (
     <>
       <Scrollbar
@@ -36,7 +40,7 @@ const CustomDataGrid = ({
         <DataGrid
           autoHeight
           loading={loading}
-          rowCount={rowCount}
+          rowCount={rowCount ?? total ?? 0}
           columns={columns}
           disableColumnResize
           rows={rows}

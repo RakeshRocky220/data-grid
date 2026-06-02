@@ -19,11 +19,11 @@ export default function App() {
   const isError = false;
 
   const data = {
-    total: 500,
+    total: 20,
   };
 
   const rows = useMemo(() => {
-    return Array.from({ length: 500 }, (_, index) => ({
+    return Array.from({ length: 20 }, (_, index) => ({
       id: index + 1,
       storeName: `Store ${index + 1}`,
       companyName: `Company ${index + 1}`,
@@ -156,19 +156,16 @@ export default function App() {
   return (
     <Stack sx={{ p: 2 }}>
       <Paper sx={{ p: 2 }}>
-        <CustomDataGrid
+         <CustomDataGrid
           disableRowSelectionExcludeModel
           checkboxSelection
           rows={rows}
           loading={isPending}
           onRowSelectionModelChange={(newModal) => {
-            const newRowSelectionModel = Array.from(
-              newModal.ids
-            );
-
+            const newRowSelectionModel = Array.from(newModal.ids);
             setRowSelectionModel(newRowSelectionModel);
           }}
-          total={data.total}
+          total={data?.total}
           rowSelectionModel={{
             type: "include",
             ids: new Set(rowSelectionModel ?? []),
@@ -176,10 +173,7 @@ export default function App() {
           sortingMode="server"
           onSortModelChange={handleSortModelChange}
           columnHeaderHeight={80}
-          paginationModel={paginationModel}
-          setPaginationModel={setPaginationModel}
-          isError={isError}
-          columns={columns}
+          {...{ paginationModel, setPaginationModel, isError, columns }}
           extraStyles={{
             "& .MuiDataGrid-columnHeaderTitle": {
               whiteSpace: "normal",

@@ -1,71 +1,197 @@
-import { Box, IconButton, useTheme } from "@mui/material";
-import KeyboardArrowLeft from "@mui/icons-material/KeyboardArrowLeft";
-import KeyboardArrowRight from "@mui/icons-material/KeyboardArrowRight";
+import React, { useEffect, useRef, useState } from "react";
+import {
+  Box,
+  FormControl,
+  IconButton,
+  MenuItem,
+  Select,
+  Skeleton,
+  Typography,
+} from "@mui/material";
+import { KeyboardArrowLeft, KeyboardArrowRight } from "@mui/icons-material";
 
-function CustomPagination(props) {
-  const theme = useTheme();
-  const { count, page, rowsPerPage, onPageChange } = props;
+const styles = {
+  selectWrapper: {
+    " .MuiSelect-select.MuiInputBase-input.MuiOutlinedInput-input ": {
+      fontSize: "14px",
+      padding: "14px 28px 14px 4px",
+    },
+  },
+  selectStyles: {
+    " .MuiOutlinedInput-notchedOutline": {
+      border: "none",
+    },
+  },
+};
 
-  const handleBackButtonClick = () => {
-    onPageChange((pageInfo) => ({
-      ...pageInfo,
-      page: pageInfo.page - 1,
-    }));
-  };
+const calculateRange = (page, pageSize, total) => {
+  const startIndex = (page - 1) * pageSize + 1;
+  let endIndex = startIndex + pageSize - 1;
+  if (endIndex > total) endIndex = total;
+  if (total === 0) return "0-0";
+  return `${startIndex}-${endIndex}`;
+};
 
-  const handleNextButtonClick = () => {
-    onPageChange((pageInfo) => ({
-      ...pageInfo,
-      page: pageInfo.page + 1,
-    }));
-  };
-
-  function labelDisplayedRows({ from, to, rowCount }) {
-    let message = rowCount !== -1 ? rowCount : `more than ${to}`;
-    return `${from}–${to} of ${message}`;
-  }
-
-  const getLabelDisplayedRowsTo = () => {
-    if (count === -1) {
-      return (page + 1) * rowsPerPage;
+const CustomPagination = ({
+  paginationModel,
+  setPaginationModel,
+  lastEvaluatedKey,
+  loading,
+  rows,
+  total = 0
+   
+}) => {
+  const [page, setPage] = useState(paginationModel?.page ?? 1);
+  const { pageSize } = paginationModel;
+  const previousKeyRef = useRef([null]);
+  useEffect(() => {
+    if (
+      (Object.hasOwn(paginationModel, "lastEvaluatedKey") &&
+        paginationModel?.lastEvaluatedKey === null) ||
+      Object.hasOwn(paginationModel, "page")
+    ) {
+      setPage(paginationModel?.page ?? 1);
     }
-    return rowsPerPage === -1
-      ? count
-      : Math.min(count, (page + 1) * rowsPerPage);
+  }, [paginationModel?.lastEvaluatedKey, paginationModel?.page]);
+
+  const handleChange = (e) => {
+    previousKeyRef.current = [null];
+    setPage(1);
+    setPaginationModel((prev) => {
+      
+      if (Object.hasOwn(paginationModel, "lastEvaluatedKey")) {
+        return {
+          ...prev,
+          pageSize: e.target.value,
+          lastEvaluatedKey: null,
+        };
+      }
+      return {
+        ...prev,
+        page: 1,
+        pageSize: e.target.value,
+      };
+    });
   };
 
+  const handleBackword = () => {
+    setPage((prev) => prev - 1);
+    setPaginationModel((prev) => {
+      if (Object.hasOwn(paginationModel, "lastEvaluatedKey")) {
+        return {
+          ...prev,
+          lastEvaluatedKey: previousKeyRef.current?.[page - 2],
+        };
+      }
+      return {
+        ...prev,
+        page: prev.page - 1,
+      };
+    });
+    previousKeyRef.current.pop();
+  };
+
+  const handleForword = () => {
+    setPage((prev) => prev + 1);
+    previousKeyRef.current?.push(lastEvaluatedKey);
+    setPaginationModel((prev) => {
+      if (Object.hasOwn(paginationModel, "lastEvaluatedKey")) {
+        return { ...prev, lastEvaluatedKey };
+      }
+
+      return {
+        ...prev,
+        page: prev.page + 1,
+      };
+    });
+  };
+
+  const handleForwardDisabled = () => {
+    if (Object.hasOwn(paginationModel, "lastEvaluatedKey")) {
+      return lastEvaluatedKey === null || loading
+    }
+    if(total) {
+      return loading || (paginationModel?.page * paginationModel?.pageSize) >= total
+    }
+    return loading || rows?.length < paginationModel?.pageSize
+  }
   return (
-    <Box sx={{ flexShrink: 0, ml: 2.5 }}>
-      <IconButton
-        onClick={handleBackButtonClick}
-        disabled={page === 0}
-        aria-label="previous page"
-      >
-        {theme.direction === "rtl" ? (
-          <KeyboardArrowRight />
-        ) : (
-          <KeyboardArrowLeft />
-        )}
-      </IconButton>
-      {labelDisplayedRows({
-        from: count === 0 ? 0 : page * rowsPerPage + 1,
-        to: getLabelDisplayedRowsTo(),
-        rowCount: count === -1 ? -1 : count,
-        page,
-      })}
-      <IconButton
-        onClick={handleNextButtonClick}
-        disabled={page >= Math.ceil(count / rowsPerPage) - 1}
-        aria-label="next page"
-      >
-        {theme.direction === "rtl" ? (
-          <KeyboardArrowLeft />
-        ) : (
-          <KeyboardArrowRight />
-        )}
-      </IconButton>
+    <Box
+      sx={{
+        display: "flex",
+        justifyContent: "end"
+      }}>
+      <Box
+        sx={{
+          display: "flex",
+          alignItems: "center",
+          gap: "10px"
+        }}>
+        <Box
+          sx={{
+            display: "flex",
+            alignItems: "center",
+            gap: "5px"
+          }}>
+          <Typography
+            sx={{
+              fontSize: "14px",
+              fontWeight: "400"
+            }}>
+            Rows per page:
+          </Typography>
+
+          <Box data-testid="select-rows">
+            <FormControl sx={styles.selectWrapper}>
+              <Select
+                value={pageSize}
+                onChange={handleChange}
+                sx={styles.selectStyles}
+              >
+                <MenuItem value={10}>10</MenuItem>
+                <MenuItem value={25}>25</MenuItem>
+                <MenuItem value={50}>50</MenuItem>
+                <MenuItem value={100}>100</MenuItem>
+              </Select>
+            </FormControl>
+          </Box>
+        </Box>
+
+        <Typography sx={{
+          fontSize: "14px"
+        }}>
+          {loading ? <Skeleton variant="text" sx={{fontSize: "14px"}} width={100}  /> : `${calculateRange(page, pageSize,total)} of ${![0, null, undefined].includes(total) ? total : "NA"} `}
+
+        </Typography>
+
+        <Box
+          sx={{
+            display: "flex",
+            justifyContent: "center",
+            alignItems: "center",
+            gap: "10px"
+          }}>
+          <IconButton
+            disabled={page === 1 || loading}
+            onClick={handleBackword}
+            data-testid="backward-icon"
+          >
+            <KeyboardArrowLeft />
+          </IconButton>
+          <Typography sx={{
+            fontSize: "14px"
+          }}>Page {page}</Typography>
+          <IconButton
+            disabled={handleForwardDisabled()}
+            onClick={handleForword}
+            data-testid="forward-icon"
+          >
+            <KeyboardArrowRight />
+          </IconButton>
+        </Box>
+      </Box>
     </Box>
   );
-}
+};
 
 export default CustomPagination;
