@@ -1,12 +1,9 @@
-import React, { useState } from "react";
+import React from "react";
 import { DataGrid } from "@mui/x-data-grid";
 import ErrorOverlay from "./ErrorOverlay";
 import Scrollbar from "./Scrollbar";
 import CustomPagination from "./CustomPagination";
-import {
-  Box,
 
-} from "@mui/material";
 const CustomDataGrid = ({
   columns,
   rowCount,
@@ -23,48 +20,9 @@ const CustomDataGrid = ({
   paginationMode = "server",
   ...restProps
 }) => {
-  // ✅ fallback state for standalone testing
-  const [localPaginationModel, setLocalPaginationModel] = useState({
-    page: 0,
-    pageSize: 10,
-  });
-
-  // ✅ Hardcoded test columns (only used if none passed)
-  const testColumns = [
-    { field: "id", headerName: "ID", width: 90 },
-    { field: "name", headerName: "Name", flex: 1 },
-    { field: "category", headerName: "Category", flex: 1 },
-    { field: "price", headerName: "Price", flex: 1 },
-    {
-      field: "description",
-      headerName: "Description",
-      flex: 2,
-    },
-  ];
-
-  // ✅ Hardcoded test rows (simulate large + variable height content)
-  const testRows = Array.from({ length: 10 }).map((_, i) => ({
-    id: i + 1,
-    name: `Product ${i + 1}`,
-    category: i % 2 === 0 ? "Electronics" : "Clothing",
-    price: `$${(Math.random() * 100).toFixed(2)}`,
-    description:
-      i % 3 === 0
-        ? "This is a very long description to simulate dynamic row height behavior in the grid. It should wrap into multiple lines and increase row height."
-        : "Short desc",
-  }));
-
-  // ✅ Use passed props OR fallback test data
-  const finalColumns = columns ?? testColumns;
-  const finalRows = rows ?? testRows;
-  const finalPaginationModel = paginationModel ?? localPaginationModel;
-  const finalSetPaginationModel =
-    setPaginationModel ?? setLocalPaginationModel;
-  const finalRowCount = rowCount ?? testRows.length;
-  const finalTotal = total || testRows.length;
 
   return (
-    <Box p={3}>
+    <>
       <Scrollbar
         sx={{
           height: 1,
@@ -78,17 +36,15 @@ const CustomDataGrid = ({
         <DataGrid
           autoHeight
           loading={loading}
-          rowCount={finalRowCount}
-          columns={finalColumns}
+          rowCount={rowCount}
+          columns={columns}
           disableColumnResize
-          rows={finalRows}
+          rows={rows}
           pageSizeOptions={pageSizeOptions}
           disableColumnMenu
           sortingOrder={["desc", "asc"]}
           disableRowSelectionOnClick
           paginationMode={paginationMode}
-          paginationModel={finalPaginationModel}
-          onPaginationModelChange={finalSetPaginationModel}
           slots={{
             noRowsOverlay: ErrorOverlay,
             noResultsOverlay: ErrorOverlay,
@@ -96,23 +52,19 @@ const CustomDataGrid = ({
           }}
           slotProps={{
             noRowsOverlay: {
-              message: isError
-                ? "Server failed to load data"
-                : ErrorOverlayMsg,
+              message: isError ? "Server failed to load data" : ErrorOverlayMsg,
             },
             noResultsOverlay: {
               message:
-                finalRows?.length > 0
-                  ? null
-                  : "Your search returned no results",
+                rows?.length > 0 ? null : "Your search returned no results",
             },
             pagination: {
-              paginationModel: finalPaginationModel,
-              setPaginationModel: finalSetPaginationModel,
+              paginationModel,
+              setPaginationModel,
               lastEvaluatedKey,
               loading,
-              rows: finalRows,
-              total: finalTotal,
+              rows,
+              total: total,
             },
           }}
           sx={{
@@ -164,7 +116,7 @@ const CustomDataGrid = ({
           {...restProps}
         />
       </Scrollbar>
-    </Box>
+    </>
   );
 };
 
