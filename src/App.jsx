@@ -1,4 +1,4 @@
-import React, { useMemo, useState, useCallback } from "react";
+import React, { useMemo, useState, useCallback,useEffect } from "react";
 import { Paper, Stack } from "@mui/material";
 import CustomDataGrid from "./CustomDataGrid";
 
@@ -15,46 +15,37 @@ export default function App() {
     sortingOrder: null,
   });
 
-  const isPending = false;
   const isError = false;
 
   const data = {
     total: 20,
   };
+const [rows, setRows] = useState([]);
+const [isPending, setIsPending] = useState(true);
+useEffect(() => {
+  setIsPending(true);
 
-  const rows = useMemo(() => {
-    return Array.from({ length: 20 }, (_, index) => ({
-      id: index + 1,
-      storeName: `Store ${index + 1}`,
-      companyName: `Company ${index + 1}`,
-      merchantId: `MID-${index + 1}`,
-      merchantStatus:
-        index % 2 === 0 ? "ACTIVE" : "PENDING",
-      iscAccountManager: `Manager ${index % 10}`,
-      tenancyStartDate: "01/01/2024",
-      tenancyEndDate: "01/01/2027",
-      marginsNt: "10",
-      marginsTrDeparture: "12",
-      marginsTrArrivalHomeDelivery: "15",
-      merchantClassification: "Tier 1",
-      gstAbsorptionTravellerDeparture: "Yes",
-      gstAbsorptionTravellerArrivalAndHomeDelivery: "No",
-      gstAbsorptionNonTraveller: "Yes",
-      sitewidePromoCodeEligibility: "Yes",
-      fulfilmentDeparture: "Yes",
-      fulfilmentArrival: "No",
-      fulfilmentLandside: "Yes",
-      departureOrderLeadTime: index,
-      shipmentTypeAirport: "Collection",
-      fulfilmentTravellerHomeDel: "Yes",
-      fulfilmentNtHomeDel: "No",
-      shipmentTypeSgDel: "Delivery",
-      dropshipType: "Standard",
-      minSpendForFreeDelivery: index * 10,
-      deliveryFee: index,
-      category: "Fashion",
-    }));
-  }, []);
+  const timer = setTimeout(() => {
+    setRows(
+      Array.from({ length: 20 }, (_, index) => ({
+        id: index + 1,
+        storeName: `Store ${index + 1}`,
+        companyName: `Company ${index + 1}`,
+        merchantId: `MID-${index + 1}`,
+        merchantStatus:
+          index % 2 === 0 ? "ACTIVE" : "PENDING",
+        iscAccountManager: `Manager ${index % 10}`,
+        tenancyStartDate: "01/01/2024",
+        tenancyEndDate: "01/01/2027",
+        category: "Fashion",
+      }))
+    );
+
+    setIsPending(false);
+  }, 1500); // 5 second API delay
+
+  return () => clearTimeout(timer);
+}, []);
 
   const customeSortComparator = (v1, v2) => {
     const num1 =
