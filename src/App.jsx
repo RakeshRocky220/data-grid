@@ -32,17 +32,5 @@ const FakeScrollbar = ({ children }) => {
 };
 
 export default function App() {
- return  <div>
-      {/* Navigation */}
-      <nav>
-        <Link to="/data-grid">Home</Link> |{" "}
-        <Link to="/custom-data-grid">Data Grid</Link>
-      </nav>
-
-      {/* Routes */}
-      <Routes>
-        <Route path="/data-grid" element={<Home />} />
-        <Route path="/custom-data-grid" element={<CustomDataGrid />} />
-      </Routes>
-    </div>
+ return <CustomDataGrid />
 }
